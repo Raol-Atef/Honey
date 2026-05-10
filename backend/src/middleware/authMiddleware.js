@@ -16,6 +16,7 @@ const protect = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: "Not authorized, no token provided",
+        errors: null,
       });
     }
 
@@ -27,6 +28,7 @@ const protect = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: "Not authorized, user not found",
+        errors: null,
       });
     }
 
@@ -34,6 +36,7 @@ const protect = async (req, res, next) => {
       return res.status(403).json({
         success: false,
         message: "Account is disabled",
+        errors: null,
       });
     }
 
@@ -41,10 +44,7 @@ const protect = async (req, res, next) => {
 
     next();
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: "Not authorized, token failed",
-    });
+    next(error);
   }
 };
 
@@ -53,6 +53,7 @@ const adminOnly = (req, res, next) => {
     return res.status(403).json({
       success: false,
       message: "Access denied, admin only",
+      errors: null,
     });
   }
 

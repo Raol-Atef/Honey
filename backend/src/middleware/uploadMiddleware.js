@@ -1,6 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const AppError = require("../utils/AppError");
 
 const uploadDir = path.join(__dirname, "../uploads");
 
@@ -14,25 +15,42 @@ const storage = multer.diskStorage({
   },
 
   filename(req, file, cb) {
+    const safeOriginalName = file.originalname
+      .replace(/\s+/g, "-")
+      .replace(/[^a-zA-Z0-9.-]/g, "");
+
     const uniqueName = `${Date.now()}-${Math.round(
       Math.random() * 1e9
-    )}${path.extname(file.originalname)}`;
+    )}-${safeOriginalName}`;
 
     cb(null, uniqueName);
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|webp/;
-  const extName = allowedTypes.test(
+  const allowedExtensions = /jpeg|jpg|png|webp/;
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+  ];
+
+  const extName = allowedExtensions.test(
     path.extname(file.originalname).toLowerCase()
   );
-  const mimeType = allowedTypes.test(file.mimetype);
+
+  const mimeType = allowedMimeTypes.includes(file.mimetype);
 
   if (extName && mimeType) {
     cb(null, true);
   } else {
-    cb(new Error("Only jpeg, jpg, png, and webp images are allowed"));
+    cb(
+      new AppError(
+        "Invalid file type. Only jpeg, jpg, png, and webp images are allowed",
+        400
+      )
+    );
   }
 };
 
